@@ -106,11 +106,9 @@ export default function Sidebar() {
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-100 shrink-0">
                     <div className="flex items-center p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md transition-all">
-                        <img
-                            src="https://ui-avatars.com/api/?name=Admin&background=f43f5e&color=fff"
-                            className="w-10 h-10 rounded-lg"
-                            alt="Admin"
-                        />
+                        <div className="w-10 h-10 rounded-lg bg-rose-500 text-white flex items-center justify-center shrink-0 font-bold text-lg">
+                            SM
+                        </div>
                         <div className="ml-3">
                             <p className="text-sm font-bold text-slate-800">Store Manager</p>
                             <p className="text-[10px] text-emerald-500 font-bold uppercase">Online</p>

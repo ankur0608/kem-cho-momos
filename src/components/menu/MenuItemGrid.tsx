@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { FaPen, FaImage, FaTrash } from "react-icons/fa6";
+import { FaPen, FaImage, FaTrash, FaUtensils } from "react-icons/fa6";
 import { MenuItem } from "@/types/MenuItem"; 
 
 interface MenuItemGridProps {
@@ -18,6 +18,20 @@ const MenuItemGrid: React.FC<MenuItemGridProps> = ({
     onDelete,
     onToggleStock,
 }) => {
+    if (!menuItems || menuItems.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[400px] bg-white border border-dashed border-slate-200 rounded-2xl p-6 text-center">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                    <FaUtensils className="text-4xl text-slate-400" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">No Menu Items Found</h3>
+                <p className="text-slate-500 text-sm max-w-sm">
+                    We don't have any data in the menu yet. Please add some products to see them here.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {menuItems.map((item) => (

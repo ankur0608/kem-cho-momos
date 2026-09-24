@@ -68,9 +68,12 @@ export default function Dashboard() {
   };
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div>
-        <p className="ml-4 text-slate-600">Loading Dashboard Data...</p>
+      <div className="flex flex-col justify-center items-center h-[70vh] w-full animate-fade-in">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full border-[3px] border-slate-100"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-[3px] border-transparent border-t-rose-600 border-r-rose-600"></div>
+        </div>
+        <p className="mt-6 text-slate-500 font-medium tracking-wide animate-pulse">Loading Dashboard Metrics...</p>
       </div>
     );
   }
@@ -136,7 +139,7 @@ export default function Dashboard() {
           color="blue"
           value={`₹ ${currentStats.revenue.toLocaleString()}`}
           label="Revenue"
-          percentage="12%"
+          // percentage="12%"
         />
         <CardComponent
           icon={FaBagShopping}
@@ -170,7 +173,13 @@ export default function Dashboard() {
                 <PopularItemRow key={index} {...item} />
               ))
             ) : (
-              <p className="text-center py-4 text-slate-400 italic">No items sold for this period.</p>
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-2">
+                   <FaBagShopping className="text-xl text-slate-300" />
+                </div>
+                <p className="text-slate-500 font-medium text-sm">No popular items</p>
+                <p className="text-slate-400 text-xs mt-1">No completed orders found.</p>
+              </div>
             )}
           </div>
           <button
@@ -202,7 +211,13 @@ export default function Dashboard() {
                 />
               ))
             ) : (
-              <p className="text-center py-4 text-slate-400 italic">No completed sales data available for this period.</p>
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                   <FaChartSimple className="text-2xl text-slate-300" />
+                </div>
+                <p className="text-slate-500 font-medium text-sm">No sales data available</p>
+                <p className="text-slate-400 text-xs mt-1">Complete some orders to see categories here.</p>
+              </div>
             )}
           </div>
         </div>
@@ -264,11 +279,14 @@ export default function Dashboard() {
               ))}
               {recentOrdersToShow.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="text-center py-6 text-slate-400 italic"
-                  >
-                    No recent orders found.
+                  <td colSpan={5} className="py-12">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                         <FaClockRotateLeft className="text-xl text-slate-300" />
+                      </div>
+                      <p className="text-slate-500 font-medium text-sm">No recent activity</p>
+                      <p className="text-slate-400 text-xs mt-1">Orders will appear here as they come in.</p>
+                    </div>
                   </td>
                 </tr>
               )}

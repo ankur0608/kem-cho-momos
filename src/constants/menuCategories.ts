@@ -1,23 +1,23 @@
 export const MENU_CATEGORIES = [
-  "Vadapav",
-  "Snacks",
-  "Sandviches",
-  "Fries",
-  "Combo",
-  "Refreshment",
-  "Cold Drinks",
-  "Extra Cheese",
+  "Steamed Momos",
+  "Fried Momos",
+  "Kurkure Momos",
+  "Pan Fried Momos",
+  "Tandoori Momos",
+  "Gravy Momos",
+  "Beverages",
+  "Combos",
 ] as const;
 
 const CATEGORY_ALIASES: Record<string, readonly string[]> = {
-  Vadapav: ["Vadapav"],
-  Snacks: ["Snacks", "Snack"],
-  Sandviches: ["Sandviches", "Sandwiches", "Sandwich"],
-  Fries: ["Fries"],
-  Combo: ["Combo", "Combos"],
-  Refreshment: ["Refreshment", "Refreshments"],
-  "Cold Drinks": ["Cold Drinks", "Cold Drink"],
-  "Extra Cheese": ["Extra Cheese"],
+  "Steamed Momos": ["Steamed Momos", "Steamed Momo", "Steam Momos"],
+  "Fried Momos": ["Fried Momos", "Fried Momo", "Fry Momos"],
+  "Kurkure Momos": ["Kurkure Momos", "Kurkure Momo"],
+  "Pan Fried Momos": ["Pan Fried Momos", "Pan Fried Momo", "Pan Fry Momos"],
+  "Tandoori Momos": ["Tandoori Momos", "Tandoori Momo"],
+  "Gravy Momos": ["Gravy Momos", "Gravy Momo"],
+  "Beverages": ["Beverages", "Beverage", "Cold Drinks", "Drinks"],
+  "Combos": ["Combos", "Combo"],
 };
 
 export function getMenuCategoryVariants(category: string): string[] {

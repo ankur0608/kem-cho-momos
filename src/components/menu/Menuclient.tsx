@@ -74,7 +74,7 @@ export default function MenuPage() {
 
     return (
         <div className="bg-slate-50/50 flex overflow-hidden">
-            <div className="space-y-6 animate-fade-in w-full max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div className="space-y-4 sm:space-y-6 animate-fade-in w-full max-w-7xl mx-auto py-2 px-2 sm:px-4 lg:px-6">
 
                 <MenuHeader setAddModalOpen={setAddModalOpen} />
 

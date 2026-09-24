@@ -25,7 +25,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
                 <Header />
 
                 {/* Page Content: Reduced mobile padding from p-6/p-10 to p-4/sm:p-6 */}
-                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-10 scroll-smooth">
+                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-6 scroll-smooth">
                     {children}
                 </main>
             </div>

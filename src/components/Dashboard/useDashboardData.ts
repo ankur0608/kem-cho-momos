@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
     FaBurger,
     FaMugHot,
     FaLayerGroup,
     FaChartSimple,
     FaBagShopping,
+    FaPizzaSlice,
 } from "react-icons/fa6";
 import {
     Order,
@@ -14,17 +15,19 @@ import {
 
 const itemIcons: Record<string, { icon: any; color: string }> = {
     vadapav: { icon: FaBurger, color: "text-orange-500" },
-    sandwich: { icon: FaLayerGroup, color: "text-green-600" },
+    sandwich: { icon: FaLayerGroup, color: "text-emerald-600" },
     fries: { icon: FaChartSimple, color: "text-yellow-600" },
-    beverage: { icon: FaMugHot, color: "text-blue-600" },
+    beverage: { icon: FaMugHot, color: "text-blue-500" },
     coffee: { icon: FaMugHot, color: "text-amber-700" },
+    momos: { icon: FaPizzaSlice, color: "text-rose-600" },
 };
 
 const categoryColors: Record<string, string> = {
     vadapav: "bg-orange-500",
-    sandwiches: "bg-green-500",
+    sandwiches: "bg-emerald-500",
     "fries & sides": "bg-yellow-500",
     beverages: "bg-blue-500",
+    momos: "bg-rose-500",
 };
 
 const calculateStats = (orders: Order[]): DashboardStats => {
@@ -34,15 +37,20 @@ const calculateStats = (orders: Order[]): DashboardStats => {
     let dineIn = 0;
     let parcel = 0;
 
-    for (const o of orders) {
+    for (let i = 0; i < orders.length; i++) {
+        const o = orders[i];
         const status = o.status.toLowerCase();
+        
         if (status === "completed") {
-            revenue += o.total;
+            revenue += o.total || 0;
             completed++;
+        } else if (status === "new" || status === "preparing" || status === "accepted") {
+            pending++;
         }
-        if (status === "new") pending++;
-        if (o.orderType === "Dine in") dineIn++;
-        if (o.orderType === "Parcel") parcel++;
+
+        const type = o.orderType?.toLowerCase();
+        if (type === "dine in" || type === "dine-in") dineIn++;
+        else if (type === "parcel" || type === "takeaway") parcel++;
     }
 
     return {
@@ -60,33 +68,48 @@ export const useDashboardData = (timeFilter: string, paymentFilter: "All" | "Cas
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchOrders = async () => {
             setLoading(true);
 
-            let url = `/api/orders?limit=5000`;
-
+            // Using URLSearchParams for robust query param handling
+            const params = new URLSearchParams({ limit: "5000" });
+            
             if (timeFilter === "Today") {
-                url += `&dashboard=today`;
+                params.append("dashboard", "today");
             } else {
-                url += `&dashboard=all`;
+                params.append("dashboard", "all");
             }
 
             if (paymentFilter !== "All") {
-                url += `&paymentMode=${paymentFilter.toUpperCase()}`;
+                params.append("paymentMode", paymentFilter.toUpperCase());
             }
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(`/api/orders?${params.toString()}`);
+                if (!response.ok) throw new Error("Failed to fetch");
+                
                 const data = await response.json();
-                setOrders(data.orders || []);
+                if (isMounted) {
+                    setOrders(data.orders || []);
+                }
             } catch (error) {
                 console.error("Error fetching orders:", error);
-                setOrders([]);
+                if (isMounted) {
+                    setOrders([]);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
         fetchOrders();
+        
+        return () => {
+            isMounted = false;
+        };
     }, [timeFilter, paymentFilter]);
 
     const todayStart = useMemo(() => {
@@ -105,6 +128,7 @@ export const useDashboardData = (timeFilter: string, paymentFilter: "All" | "Cas
                 recentOrders: [],
             };
         }
+
         const currentStats = calculateStats(orders);
 
         const statsMap = {
@@ -112,43 +136,47 @@ export const useDashboardData = (timeFilter: string, paymentFilter: "All" | "Cas
             All: timeFilter === "All" ? currentStats : currentStats,
         };
 
-        const completed = orders.filter(
-            (o) => o.status.toLowerCase() === "completed"
-        );
+        const itemMap = new Map<string, { count: number; revenue: number; icon: any; colorIcon: string }>();
+        const categoryMap = new Map<string, number>();
+        let totalRevenueForItems = 0;
 
-        const itemMap = new Map();
-        const categoryMap = new Map();
-        let totalRevenue = 0;
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            
+            // Only count items for completed orders
+            if (order.status.toLowerCase() !== "completed") continue;
+            if (!order.cart || !Array.isArray(order.cart)) continue;
 
-        for (const order of completed) {
-            for (const item of order.cart) {
-                const { name, quantity, price, category = "Other" } = item;
+            for (let j = 0; j < order.cart.length; j++) {
+                const item = order.cart[j];
+                const name = item.name || "Unknown";
+                const quantity = item.quantity || 1;
+                const price = item.price || 0;
+                const category = item.category || "Other";
+                
                 const rev = quantity * price;
-
-                totalRevenue += rev;
+                totalRevenueForItems += rev;
                 const key = category.toLowerCase();
 
-                const iconKey =
-                    key.includes("vada") ? "vadapav" :
-                        key.includes("sand") ? "sandwich" :
-                            key.includes("fries") ? "fries" :
-                                key.includes("coffee") || key.includes("beverage")
-                                    ? "beverage"
-                                    : "vadapav";
+                let iconKey = "vadapav";
+                if (key.includes("vada")) iconKey = "vadapav";
+                else if (key.includes("sand")) iconKey = "sandwich";
+                else if (key.includes("fries")) iconKey = "fries";
+                else if (key.includes("coffee") || key.includes("beverage") || key.includes("drink")) iconKey = "beverage";
+                else if (key.includes("momo") || name.toLowerCase().includes("momo")) iconKey = "momos";
 
-                const existing = itemMap.get(name) || {
-                    count: 0,
-                    revenue: 0,
-                    icon: itemIcons[iconKey]?.icon || FaBagShopping,
-                    colorIcon: itemIcons[iconKey]?.color || "text-gray-500",
-                };
-
-                itemMap.set(name, {
-                    count: existing.count + quantity,
-                    revenue: existing.revenue + rev,
-                    icon: existing.icon,
-                    colorIcon: existing.colorIcon,
-                });
+                const existing = itemMap.get(name);
+                if (existing) {
+                    existing.count += quantity;
+                    existing.revenue += rev;
+                } else {
+                    itemMap.set(name, {
+                        count: quantity,
+                        revenue: rev,
+                        icon: itemIcons[iconKey]?.icon || FaBagShopping,
+                        colorIcon: itemIcons[iconKey]?.color || "text-slate-500",
+                    });
+                }
 
                 categoryMap.set(category, (categoryMap.get(category) || 0) + rev);
             }
@@ -162,23 +190,18 @@ export const useDashboardData = (timeFilter: string, paymentFilter: "All" | "Cas
                 colorIcon: data.colorIcon,
             }))
             .sort((a, b) => b.orders - a.orders)
-            .slice(0, 3);
+            .slice(0, 3); // Top 3 items
 
         let salesByCategory = Array.from(categoryMap.entries())
             .map(([category, rev]) => ({
                 name: category,
-                percent: totalRevenue
-                    ? Math.round((rev / totalRevenue) * 100)
-                    : 0,
-                color:
-                    categoryColors[category.toLowerCase()] || "bg-gray-500",
+                percent: totalRevenueForItems ? Math.round((rev / totalRevenueForItems) * 100) : 0,
+                color: categoryColors[category.toLowerCase()] || "bg-slate-400",
             }))
             .sort((a, b) => b.percent - a.percent);
 
-        if (totalRevenue === 0) {
-            salesByCategory = [
-                { name: "No Sales Recorded", percent: 100, color: "bg-gray-400" },
-            ];
+        if (totalRevenueForItems === 0) {
+            salesByCategory = []; // We handle empty state in UI instead of a dummy item
         }
 
         return {
@@ -187,13 +210,15 @@ export const useDashboardData = (timeFilter: string, paymentFilter: "All" | "Cas
             salesByCategory,
             recentOrders: orders,
         };
-    }, [orders, timeFilter, paymentFilter, todayStart, loading]);
+    }, [orders, timeFilter, todayStart]);
 
     const recentOrdersToShow = useMemo(() => {
-        const sorted = [...dashboardData.recentOrders].sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        return sorted.slice(0, 5);
+        // Only slice the first 5 elements for better performance instead of sorting all 5000 (API already returns latest first usually)
+        // If API doesn't guarantee sorting, we slice first then sort, but actually sorting 5000 dates isn't terrible in JS.
+        // Let's do a fast sort and take top 5.
+        return [...dashboardData.recentOrders]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 5);
     }, [dashboardData.recentOrders]);
 
     return {
