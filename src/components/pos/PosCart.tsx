@@ -4,6 +4,7 @@
 import React, { useMemo, useCallback, memo, JSX, useState, useRef, useEffect } from "react";
 import {
     FaUser,
+    FaUserPlus,
     FaTag,
     FaUtensils,
     FaPercent,
@@ -44,6 +45,8 @@ function PosCart({
     // 0. UI STATE & REFS (New)
     // -------------------------------
     const [activeField, setActiveField] = useState<'customer' | 'coupon' | null>(null);
+    const [showCustomerFields, setShowCustomerFields] = useState(false);
+    const [showDiscountFields, setShowDiscountFields] = useState(false);
     const customerRef = useRef<HTMLDivElement>(null);
     const couponRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +195,18 @@ function PosCart({
 
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => setShowDiscountFields(!showDiscountFields)}
+                            className={`p-2 rounded-full transition-colors ${showDiscountFields ? 'bg-rose-100 text-rose-600' : ticket.discount > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-slate-500 hover:bg-gray-200'}`}
+                        >
+                            <FaTag className="text-sm" />
+                        </button>
+                        <button
+                            onClick={() => setShowCustomerFields(!showCustomerFields)}
+                            className={`p-2 rounded-full transition-colors ${showCustomerFields ? 'bg-rose-100 text-rose-600' : (ticket.customer || ticket.mobile) ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-slate-500 hover:bg-gray-200'}`}
+                        >
+                            <FaUserPlus className="text-sm" />
+                        </button>
+                        <button
                             onClick={onCloseMobile}
                             className="lg:hidden text-slate-400 hover:text-rose-600 p-1 transition-colors"
                         >
@@ -201,11 +216,12 @@ function PosCart({
                 </div>
 
                 {/* Customer Inputs */}
-                <div className="space-y-1">
+                {showCustomerFields && (
+                    <div className="space-y-1 mt-2">
 
-                    {/* CUSTOMER NAME / SEARCH INPUT */}
-                    {/* Attached Ref to wrapper to detect clicks */}
-                    <div className="relative" ref={customerRef}>
+                        {/* CUSTOMER NAME / SEARCH INPUT */}
+                        {/* Attached Ref to wrapper to detect clicks */}
+                        <div className="relative" ref={customerRef}>
                         <FaUser className="absolute left-3 top-3 text-slate-400 text-xs" />
                         <input
                             type="text"
@@ -257,6 +273,7 @@ function PosCart({
                         />
                     </div>
                 </div>
+                )}
             </div>
 
             {/* --- ITEMS SCROLL AREA --- */}
@@ -314,77 +331,81 @@ function PosCart({
             {/* --- FOOTER --- */}
             <div className="p-4 bg-white border-t border-slate-200 shadow-[0_-5px_20px_rgba(0,0,0,0.02)] z-10">
 
-                {/* Quick Discounts */}
-                <div className="mb-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <FaPercent className="text-[10px] text-rose-500" />
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Quick Discount
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-6 gap-2">
-                        {QUICK_DISCOUNTS.map((pct) => {
-                            const isActive = ticket.couponCode === `MANUAL ${pct}%`;
-                            return (
-                                <button
-                                    key={pct}
-                                    onClick={() => applyQuickDiscount(pct)}
-                                    className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isActive
-                                        ? "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-200 scale-105"
-                                        : "bg-white text-slate-600 border-slate-200 hover:border-rose-300 hover:text-rose-600"
-                                        }`}
-                                >
-                                    {pct}%
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Coupon Input */}
-                <div className="flex gap-2 mb-4">
-                    {/* Attached Ref to wrapper */}
-                    <div className="relative flex-1" ref={couponRef}>
-                        <FaTag className="absolute left-3 top-2.5 text-slate-400 text-xs" />
-                        <input
-                            type="text"
-                            placeholder="COUPON CODE"
-                            value={couponInput}
-                            onFocus={() => setActiveField('coupon')} // Activate on focus
-                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                            className="w-full border border-slate-300 rounded-lg pl-9 pr-2 py-2 text-xs font-bold uppercase focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none"
-                        />
-                        {/* Coupon Suggestions */}
-                        {showSuggestions && (
-                            <div className="absolute bottom-full mb-1 w-full bg-white border rounded-lg shadow-xl z-30 
-                            max-h-40 overflow-y-auto 
-                            animate-in fade-in zoom-in-95 duration-100">
-                                {suggestions.map((c) => (
-                                    <button
-                                        key={c._id}
-                                        onClick={() => {
-                                            applyCoupon(c);
-                                            setCouponInput(c.code);
-                                            setActiveField(null); // Close on selection
-                                        }}
-                                        className="w-full px-3 py-2.5 text-left hover:bg-rose-50 flex justify-between items-center border-b last:border-0"
-                                    >
-                                        <span className="font-bold text-xs text-slate-700">{c.code}</span>
-                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                                            {c.discountPercentage}% OFF
-                                        </span>
-                                    </button>
-                                ))}
+                {showDiscountFields && (
+                    <>
+                        {/* Quick Discounts */}
+                        <div className="mb-2">
+                            <div className="flex items-center gap-2 mb-2">
+                                <FaPercent className="text-[10px] text-rose-500" />
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                    Quick Discount
+                                </p>
                             </div>
-                        )}
-                    </div>
-                    <button
-                        onClick={() => { /* Apply logic is handled by state/hook */ }}
-                        className="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors shadow-lg shadow-slate-200"
-                    >
-                        APPLY
-                    </button>
-                </div>
+                            <div className="grid grid-cols-6 gap-2">
+                                {QUICK_DISCOUNTS.map((pct) => {
+                                    const isActive = ticket.couponCode === `MANUAL ${pct}%`;
+                                    return (
+                                        <button
+                                            key={pct}
+                                            onClick={() => applyQuickDiscount(pct)}
+                                            className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isActive
+                                                ? "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-200 scale-105"
+                                                : "bg-white text-slate-600 border-slate-200 hover:border-rose-300 hover:text-rose-600"
+                                                }`}
+                                        >
+                                            {pct}%
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Coupon Input */}
+                        <div className="flex gap-2 mb-4">
+                            {/* Attached Ref to wrapper */}
+                            <div className="relative flex-1" ref={couponRef}>
+                                <FaTag className="absolute left-3 top-2.5 text-slate-400 text-xs" />
+                                <input
+                                    type="text"
+                                    placeholder="COUPON CODE"
+                                    value={couponInput}
+                                    onFocus={() => setActiveField('coupon')} // Activate on focus
+                                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                                    className="w-full border border-slate-300 rounded-lg pl-9 pr-2 py-2 text-xs font-bold uppercase focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none"
+                                />
+                                {/* Coupon Suggestions */}
+                                {showSuggestions && (
+                                    <div className="absolute bottom-full mb-1 w-full bg-white border rounded-lg shadow-xl z-30 
+                                    max-h-40 overflow-y-auto 
+                                    animate-in fade-in zoom-in-95 duration-100">
+                                        {suggestions.map((c) => (
+                                            <button
+                                                key={c._id}
+                                                onClick={() => {
+                                                    applyCoupon(c);
+                                                    setCouponInput(c.code);
+                                                    setActiveField(null); // Close on selection
+                                                }}
+                                                className="w-full px-3 py-2.5 text-left hover:bg-rose-50 flex justify-between items-center border-b last:border-0"
+                                            >
+                                                <span className="font-bold text-xs text-slate-700">{c.code}</span>
+                                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                                    {c.discountPercentage}% OFF
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => { /* Apply logic is handled by state/hook */ }}
+                                className="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors shadow-lg shadow-slate-200"
+                            >
+                                APPLY
+                            </button>
+                        </div>
+                    </>
+                )}
 
                 {/* Payment Mode & Delivery Type Selection */}
                 <div className="mb-4">
@@ -502,7 +523,7 @@ function PosCart({
                         : "bg-rose-600 text-white shadow-rose-200 hover:bg-rose-700 hover:shadow-rose-300"
                         }`}
                 >
-                    {isCheckingOut ? "PROCESSING..." : "CHECKOUT & PRINT"}
+                    {isCheckingOut ? "PROCESSING..." : "CHECKOUT"}
                 </button>
             </div>
         </div>

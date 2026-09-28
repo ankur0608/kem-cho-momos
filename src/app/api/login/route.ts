@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const token = jwt.sign(
       { id: user._id, email: user.email },
       JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "365d" }
     );
 
     // 🚫 SINGLE SESSION ENFORCEMENT
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: 365 * 24 * 60 * 60,
     });
 
     return response;

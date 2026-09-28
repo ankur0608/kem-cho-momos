@@ -8,7 +8,7 @@ export default function ReceiptModal({ ticket, onClose }: { ticket: Ticket; onCl
   const total = subtotal - ticket.discount;
 
   useEffect(() => {
-    setTimeout(() => window.print(), 300);
+    // setTimeout(() => window.print(), 300);
   }, []);
 
   return (
@@ -66,7 +66,7 @@ export default function ReceiptModal({ ticket, onClose }: { ticket: Ticket; onCl
 
         {/* Buttons */}
         <div className="bg-gray-50 p-4 flex border-t border-gray-200 no-print gap-3">
-          <button onClick={() => window.print()} className="flex-1 bg-slate-800 text-white py-2.5 rounded-lg shadow hover:bg-slate-700 font-bold">Print</button>
+          {/* <button onClick={() => window.print()} className="flex-1 bg-slate-800 text-white py-2.5 rounded-lg shadow hover:bg-slate-700 font-bold">Print</button> */}
           <button onClick={onClose} className="flex-1 border border-gray-300 text-slate-600 py-2.5 rounded-lg font-bold hover:bg-white">Close</button>
         </div>
       </div>

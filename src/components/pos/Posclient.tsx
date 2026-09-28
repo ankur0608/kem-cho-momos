@@ -39,7 +39,7 @@ const createInitialTickets = (): Ticket[] => [
     _id: 1,
     label: "Order #1",
     items: [],
-    PaymentMode: "",
+    PaymentMode: "ONLINE",
     customer: "",
     mobile: "",        // ← ADD THIS
     couponCode: "",
@@ -58,6 +58,7 @@ export default function PosPage(): JSX.Element {
   const { menuItems, coupons: availableCoupons, loading } = usePosData();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [popupMessage, setPopupMessage] = useState<string | null>(null);
+  const [popupType, setPopupType] = useState<'success' | 'error'>('error');
 
   // Listen for print completion from iframe
   useEffect(() => {
@@ -110,12 +111,9 @@ export default function PosPage(): JSX.Element {
       ...menuItems.map((item) => item.category),
     ]);
 
-    setCategories(sortedCats);
+    setCategories(["All", ...sortedCats]);
 
-    if (sortedCats.length > 0) {
-      setActiveCategory(sortedCats[0]);
-    }
-
+    setActiveCategory("All");
   }, [menuItems]);
 
   const displayedItems = useMemo(() => {
@@ -128,6 +126,10 @@ export default function PosPage(): JSX.Element {
           i.name.toLowerCase().includes(lowered) ||
           (i.code && i.code.toLowerCase().includes(lowered))
       );
+    }
+
+    if (activeCategory === "All") {
+      return items;
     }
 
     return items.filter(
@@ -162,7 +164,7 @@ export default function PosPage(): JSX.Element {
         items: [],
         customer: "",
         couponCode: "",
-        PaymentMode: "",
+        PaymentMode: "ONLINE",
         discount: 0,
         mobile: "",
         deliveryType: "Dine in",
@@ -406,20 +408,16 @@ export default function PosPage(): JSX.Element {
       });
 
 
-      // 5. Initiate Printing (Receipt Generation)
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "absolute";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.opacity = "0";
-      iframe.style.pointerEvents = "none";
-      iframe.src = `/pos/print/${data.order._id}?iframe=true`;
-      document.body.appendChild(iframe);
+      // Show Success Modal
+      setPopupType('success');
+      const orderId = data.order._id ? data.order._id.slice(-6).toUpperCase() : 'placed';
+      setPopupMessage(`Order #${orderId} placed successfully!`);
 
     } catch (error) {
       // 6. Handle Error
       console.error("Checkout error:", error);
-      alert(`Checkout failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      setPopupType('error');
+      setPopupMessage(`Checkout failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       // 7. Re-enable button
       setIsCheckingOut(false);
@@ -572,20 +570,23 @@ export default function PosPage(): JSX.Element {
         >
           <div className="p-3 flex flex-col sm:flex-row justify-between gap-3">
             <div className="flex items-center w-full sm:w-auto">
-              <div className="lg:hidden relative flex-1 sm:w-48">
-                <select
-                  value={activeCategory}
-                  onChange={(e) => {
-                    setActiveCategory(e.target.value);
-                    setSearchQuery("");
-                  }}
-                  className="w-full pl-3 pr-8 py-2 font-bold rounded bg-gray-50"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat}>{cat}</option>
-                  ))}
-                </select>
-                {/* <FaChevronDown className="absolute right-3 top-3 text-gray-400 text-xs" /> */}
+              <div className="lg:hidden grid grid-cols-3 gap-2 w-full pb-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setActiveCategory(cat);
+                      setSearchQuery("");
+                    }}
+                    className={`truncate px-2 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition-colors ${
+                      activeCategory === cat
+                        ? "bg-slate-800 text-white shadow"
+                        : "bg-gray-100 text-slate-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
 
               <h3 className="hidden lg:block font-bold text-lg text-slate-800 pl-2">
@@ -595,7 +596,7 @@ export default function PosPage(): JSX.Element {
               </h3>
             </div>
 
-            <div className="relative w-full sm:w-56">
+            <div className="relative w-full sm:w-56 mt-2 sm:mt-0">
               <FaSearch className="absolute left-3 top-2.5 text-gray-400 text-xs" />
               <input
                 value={searchQuery}
@@ -606,7 +607,7 @@ export default function PosPage(): JSX.Element {
             </div>
           </div>
 
-          <div className="flex-1 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto pb-24 lg:pb-4">
+          <div className="flex-1 p-2 sm:p-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 overflow-y-auto pb-24 lg:pb-4">
             {displayedItems.length === 0 ? (
               <div className="col-span-full flex flex-col items-center text-slate-400">
                 <FaUtensils className="text-4xl opacity-30 mb-2" />
@@ -626,7 +627,7 @@ export default function PosPage(): JSX.Element {
                     key={item._id}
                     onClick={() => addToCart(item)}
                     disabled={!isAvailable}
-                    className={`group bg-white rounded-xl p-3 hover:shadow-lg transition-all h-56 flex flex-col justify-between relative ${!isAvailable
+                    className={`group bg-white rounded-xl p-2 sm:p-3 hover:shadow-lg transition-all h-48 sm:h-56 flex flex-col justify-between relative ${!isAvailable
                       ? "opacity-60 grayscale cursor-not-allowed"
                       : ""
                       }`}
@@ -639,7 +640,7 @@ export default function PosPage(): JSX.Element {
                       </div>
                     )}
 
-                    <div className="relative w-full h-32 bg-gray-50 rounded overflow-hidden">
+                    <div className="relative w-full h-24 sm:h-32 bg-gray-50 rounded overflow-hidden">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
@@ -655,12 +656,12 @@ export default function PosPage(): JSX.Element {
                     </div>
 
                     <div>
-                      <span className="font-bold text-slate-700 text-sm line-clamp-2 block">
+                      <span className="font-bold text-slate-700 text-[11px] sm:text-sm leading-tight line-clamp-2 block mt-2">
                         {item.name}
                       </span>
 
                       <div className="flex justify-between items-center mt-1">
-                        <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-xs">
+                        <span className="text-rose-600 font-bold bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs">
                           ₹{item.price}
                         </span>
                         {item.code && (
@@ -713,7 +714,11 @@ export default function PosPage(): JSX.Element {
           {popupMessage && (
             <PosPopup
               message={popupMessage}
-              onClose={() => setPopupMessage(null)}
+              type={popupType}
+              onClose={() => {
+                setPopupMessage(null);
+                setPopupType('error');
+              }}
             />
           )}
         </div>
