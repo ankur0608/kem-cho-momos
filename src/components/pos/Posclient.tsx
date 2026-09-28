@@ -1,5 +1,6 @@
 // app/pos/page.tsx or similar
 "use client";
+import toast from 'react-hot-toast';
 
 import React, {
   useState,
@@ -28,7 +29,6 @@ import { MenuItem, Ticket, CartItem, Coupon } from "./types";
 import PosCart from "@/components/pos/PosCart";
 import { usePosData } from "@/hooks/usePosData";
 import LoadingScreen from "./LoadingScreen";
-import PosPopup from "@/components/pos/PosPopup";
 import {
   MENU_CATEGORIES,
   getSortedMenuCategories,
@@ -57,8 +57,6 @@ export default function PosPage(): JSX.Element {
   const [mobileView, setMobileView] = useState<"items" | "cart">("items");
   const { menuItems, coupons: availableCoupons, loading } = usePosData();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [popupMessage, setPopupMessage] = useState<string | null>(null);
-  const [popupType, setPopupType] = useState<'success' | 'error'>('error');
 
   // Listen for print completion from iframe
   useEffect(() => {
@@ -334,14 +332,14 @@ export default function PosPage(): JSX.Element {
   // ]);
   const handleCheckout = useCallback(async () => {
     if (currentTicket.items.length === 0) {
-      setPopupMessage("Your cart is empty. Please add items to continue.");
+      toast.error("Your cart is empty. Please add items to continue.");
       return;
     }
 
     if (isCheckingOut) return;
 
     if (!currentTicket.PaymentMode) {
-      setPopupMessage("Please select a payment mode before checkout.");
+      toast.error("Please select a payment mode before checkout.");
       return;
     }
     setIsCheckingOut(true); // Disable button
@@ -408,16 +406,17 @@ export default function PosPage(): JSX.Element {
       });
 
 
-      // Show Success Modal
-      setPopupType('success');
+      // Show Success Toast
       const orderId = data.order._id ? data.order._id.slice(-6).toUpperCase() : 'placed';
-      setPopupMessage(`Order #${orderId} placed successfully!`);
+      toast.success(`Order #${orderId} placed successfully!`);
+      
+      // Redirect back to items view on mobile
+      setMobileView("items");
 
     } catch (error) {
       // 6. Handle Error
       console.error("Checkout error:", error);
-      setPopupType('error');
-      setPopupMessage(`Checkout failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.error(`Checkout failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       // 7. Re-enable button
       setIsCheckingOut(false);
@@ -711,16 +710,6 @@ export default function PosPage(): JSX.Element {
             isCheckingOut={isCheckingOut}
             onCloseMobile={handleSetMobileItems}
           />
-          {popupMessage && (
-            <PosPopup
-              message={popupMessage}
-              type={popupType}
-              onClose={() => {
-                setPopupMessage(null);
-                setPopupType('error');
-              }}
-            />
-          )}
         </div>
       </div>
     </div>
