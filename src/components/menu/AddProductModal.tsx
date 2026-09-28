@@ -176,23 +176,19 @@ export default function AddProductModal({
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                     Category
                   </label>
-                  <input
-                    type="text"
-                    list="category-options"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-300"
+                  <select
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all cursor-pointer"
                     value={formData.category}
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    placeholder="Select or type category"
-                  />
-                  <datalist id="category-options">
+                  >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>
                     ))}
-                  </datalist>
+                  </select>
                 </div>
 
                 <div>

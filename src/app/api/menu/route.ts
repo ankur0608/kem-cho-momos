@@ -49,14 +49,22 @@ export async function GET(req: Request) {
             { $limit: limit },
         ]);
 
-        // 4. Fetch distinct categories
+        // 4. Fetch distinct categories from items
         const dbCategories = await MenuItem.distinct("category");
+        
+        // Fetch categories from Category model
+        const Category = (await import("@/models/Category")).default;
+        const manualCategories = await Category.find({}).sort({ sortOrder: 1 });
+        const manualCategoryNames = manualCategories.map((c: any) => c.name);
+
+        // Combine and deduplicate
+        const allCategories = Array.from(new Set([...manualCategoryNames, ...dbCategories]));
 
         return NextResponse.json({
             items,
             totalPages,
             currentPage: page,
-            categories: dbCategories,
+            categories: allCategories,
         });
 
     } catch (error) {

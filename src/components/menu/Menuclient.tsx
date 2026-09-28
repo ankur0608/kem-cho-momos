@@ -32,6 +32,7 @@ export default function MenuPage() {
         handleSaveSuccess,
         toggleStock,
         confirmDelete: executeDelete,
+        loadMenu,
     } = useMenuManager();
 
     const [addModalOpen, setAddModalOpen] = useState(false);
@@ -82,6 +83,7 @@ export default function MenuPage() {
                     activeFilter={activeFilter}
                     setActiveFilter={setActiveFilter} // Hook setter
                     categories={allCategories}
+                    onCategoryAdded={loadMenu}
                 />
 
                 {isLoading ? (

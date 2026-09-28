@@ -132,19 +132,15 @@ export default function EditProductModal({ onClose, onUpdate, categories, item }
 
                                 <div>
                                     <label className={labelClass}>Category</label>
-                                    <input
-                                        type="text"
-                                        list="edit-category-options"
-                                        className={inputClass}
+                                    <select
+                                        className={`${inputClass} cursor-pointer`}
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        placeholder="Select or type category"
-                                    />
-                                    <datalist id="edit-category-options">
+                                    >
                                         {categories.map(cat => (
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
-                                    </datalist>
+                                    </select>
                                 </div>
 
                                 <div>
